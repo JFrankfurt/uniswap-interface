@@ -6,7 +6,7 @@ import { SupportedChainId } from 'constants/chains'
 import { INFURA_NETWORK_URLS } from 'constants/infura'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from 'constants/locales'
 import Widget from 'lib/components/Widget'
-import { darkTheme, defaultTheme, lightTheme } from 'lib/theme'
+import { darkTheme, Theme } from 'lib/theme'
 import { ReactNode, useEffect, useState } from 'react'
 import { useSelect, useValue } from 'react-cosmos/fixture'
 
@@ -18,13 +18,19 @@ const [walletConnect] = initializeConnector<WalletConnect>(
 export default function Wrapper({ children }: { children: ReactNode }) {
   const [width] = useValue('width', { defaultValue: 360 })
   const [locale] = useSelect('locale', { defaultValue: DEFAULT_LOCALE, options: ['pseudo', ...SUPPORTED_LOCALES] })
-  const [darkMode] = useValue('dark mode', { defaultValue: false })
-  const [theme, setTheme] = useValue('theme', { defaultValue: { ...defaultTheme, ...lightTheme } })
-  useEffect(() => {
-    setTheme({ ...defaultTheme, ...(darkMode ? darkTheme : lightTheme) })
-    // cosmos does not maintain referential equality for setters
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [darkMode])
+  const theme: Theme = {
+    ...darkTheme,
+    fontFamily:
+      'Titillium Web, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji',
+    accent: '#4d249e', // main buttons
+    container: '#341771', // input background
+    dialog: '#341771', // confirmation background
+    interactive: '#4C29A1', // token select buttons
+    module: '#301566', // output background
+    onInteractive: '#fff', // text on interactive
+    secondary: 'rgba(255, 255, 255, 0.5)',
+    tokenColorExtraction: false,
+  }
 
   const NO_JSON_RPC = 'None'
   const [jsonRpcEndpoint] = useSelect('JSON-RPC', {
