@@ -106,7 +106,6 @@ export default function TokenDetails() {
   )
 
   const nativeCurrencyBalance = useCurrencyBalance(account, nativeCurrency)
-
   const tokenBalance = useTokenBalance(account, isNative ? nativeCurrency.wrapped : pageToken)
 
   const tokenWarning = tokenAddressParam ? checkWarning(tokenAddressParam) : null
@@ -167,8 +166,10 @@ export default function TokenDetails() {
               <ArrowLeft size={14} /> Tokens
             </BreadcrumbNavLink>
             <ChartSection
-              token={tokenQueryData}
-              nativeCurrency={isNative ? nativeCurrency : undefined}
+              token={pageToken}
+              tokenQueryData={tokenQueryData}
+              isNative={isNative}
+              nativeCurrency={nativeCurrency}
               prices={prices}
             />
             <StatsSection
