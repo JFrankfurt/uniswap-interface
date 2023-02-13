@@ -33,6 +33,6 @@ test('PositionListItem should not render when the name contains a url', () => {
     tickUpper: 1600,
   }
   render(<PositionListItem {...positionDetails} />)
-  screen.debug()
+
   expect(screen.queryByText('.com', { exact: false })).toBe(null)
 })
