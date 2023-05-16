@@ -1,10 +1,15 @@
 import { TraceEvent } from '@uniswap/analytics'
 import { BrowserEvent, InterfaceElementName, InterfaceEventName } from '@uniswap/analytics-events'
-import { useCloseAccountDrawer } from 'components/AccountDrawer'
+import { useAccountDrawer, useCloseAccountDrawer } from 'components/AccountDrawer'
 import Loader from 'components/Icons/LoadingSpinner'
+import Popover from 'components/Popover'
 import { ActivationStatus, useActivationState } from 'connection/activate'
-import { Connection } from 'connection/types'
+import { Connection, ConnectionType } from 'connection/types'
+import { useCallback, useEffect, useState } from 'react'
+import { MouseEvent } from 'react'
+import { MoreHorizontal } from 'react-feather'
 import styled from 'styled-components/macro'
+import { ThemedText } from 'theme'
 import { useIsDarkMode } from 'theme/components/ThemeToggle'
 import { flexColumnNoWrap, flexRowNoWrap } from 'theme/styles'
 
@@ -62,15 +67,48 @@ const IconWrapper = styled.div`
     align-items: flex-end;
   `};
 `
+const WCv2PopoverContent = styled.div`
+  background: ${({ theme }) => theme.backgroundSurface};
+  border: 1px solid ${({ theme }) => theme.backgroundOutline};
+  border-radius: 12px;
+  display: flex;
+  max-width: 240px;
+  padding: 20px 16px;
+`
+const WCv2PopoverToggle = styled.button`
+  align-items: center;
+  background: transparent;
+  border-width: 0 0 0 1px;
+  border-color: ${({ theme }) => theme.textTertiary};
+  color: ${({ theme }) => theme.textTertiary};
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: 0 0 0 14px;
+`
 
 export default function Option({ connection }: { connection: Connection }) {
   const { activationState, tryActivation } = useActivationState()
+  const [WC2PromptOpen, setWC2PromptOpen] = useState(false)
   const closeDrawer = useCloseAccountDrawer()
   const activate = () => tryActivation(connection, closeDrawer)
+  const [accountDrawerOpen] = useAccountDrawer()
+
+  useEffect(() => {
+    if (!accountDrawerOpen) setWC2PromptOpen(false)
+  }, [accountDrawerOpen])
 
   const isSomeOptionPending = activationState.status === ActivationStatus.PENDING
   const isCurrentOptionPending = isSomeOptionPending && activationState.connection.type === connection.type
   const isDarkMode = useIsDarkMode()
+
+  const handleWCv2Click = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation()
+      setWC2PromptOpen(!WC2PromptOpen)
+    },
+    [WC2PromptOpen]
+  )
 
   return (
     <TraceEvent
@@ -92,7 +130,38 @@ export default function Option({ connection }: { connection: Connection }) {
           <HeaderText>{connection.getName()}</HeaderText>
           {connection.isNew && <NewBadge />}
         </OptionCardLeft>
-        {isCurrentOptionPending && <Loader />}
+        {isCurrentOptionPending ? (
+          <Loader />
+        ) : (
+          connection.type === ConnectionType.WALLET_CONNECT && (
+            <Popover
+              placement="bottom"
+              hideArrow
+              content={
+                <WCv2PopoverContent>
+                  <IconWrapper style={{}}>
+                    <img
+                      src={connection.getIcon?.(isDarkMode)}
+                      alt="Icon"
+                      style={{ marginRight: '12px', width: '20px' }}
+                    />
+                  </IconWrapper>
+                  <div>
+                    <ThemedText.BodyPrimary style={{ marginBottom: '4px' }}>Connect with v2</ThemedText.BodyPrimary>
+                    <ThemedText.Caption color="textSecondary">
+                      Under development and unsupported by most wallets
+                    </ThemedText.Caption>
+                  </div>
+                </WCv2PopoverContent>
+              }
+              show={WC2PromptOpen}
+            >
+              <WCv2PopoverToggle onClick={handleWCv2Click}>
+                <MoreHorizontal />
+              </WCv2PopoverToggle>
+            </Popover>
+          )
+        )}
       </OptionCardClickable>
     </TraceEvent>
   )
